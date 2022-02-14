@@ -1,0 +1,192 @@
+---
+title: "NYPD Shooting Incidents from 2006 to 2021"
+subtitle: "Occurrences in Hours and Boroughs"
+author: "F."
+date: "1/31/2022"
+output:
+  html_document: default
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## 1. Purpose
+
+The purpose of the study is to show at which hours (0-23) and in which boroughs (New York City is composed of five boroughs: The Bronx, Brooklyn, Manhattan, Queens, and Staten Island) NYPD (New York Police Department) shooting incidents occurred from 2006 to 2021. 
+
+The **NYPD Shooting Incident Data (Historic)** dataset is used, see the section below. 
+
+For this study two linear models are used. They are both $y = c$. It is assumed that $c$ is a specific but unknown number. 
+
+The study expects to find that shooting incidents for each borough is the same.  
+
+The study also expects to find that shooting incidents per hour is the same.  
+
+## 2. NYPD Shooting Incident Data (Historic)
+
+>"[The dataset] is a breakdown of every shooting incident that occurred in NYC going back to 2006 through the end of the previous calendar year. This data is manually extracted every quarter and reviewed by the Office of Management Analysis and Planning before being posted on the NYPD website. Each record represents a shooting incident in NYC and includes information about the event, the location and time of occurrence. In addition, information related to suspect and victim demographics is also included." - <https://catalog.data.gov/dataset/nypd-shooting-incident-data-historic>
+
+For further information about the dataset see the **Additional Information** section at the end of this document.
+
+The dataset is imported from <https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD>.
+
+## 3. NYPD Shooting Incidents in Hours
+
+### 3.1 Import the data
+
+We import the data from NYC OpenData. The specific link is listed in the code below. 
+
+```{r import_the_data1, echo = TRUE}
+# the URL address is stored
+url <- "https://data.cityofnewyork.us/api/views/833y-fsy8/rows.csv?accessType=DOWNLOAD"
+
+# the csv data is downloaded from the URL address
+csv_data <- read.csv(url)
+```
+
+### 3.2 Tidy the data
+
+We tidy the data. Only the OCCUR_TIME column is used.
+
+```{r tidy_the_data1, echo = TRUE}
+# the OCCUR_TIME column of the dataset is stored
+csv_occur_time <- csv_data$OCCUR_TIME
+```
+
+### 3.2 Transform the data
+
+We transform the time format to hours only and store the table as a dataframe. We use a regular expression to achieve this.  
+
+```{r transform_the_data1, echo = TRUE}
+# we loop through the data in csv_occur_time and transform each time (e.g., 21:01:23) to the hour only (e.g., 21)
+for (i in seq(from = 1, to = length(csv_occur_time), by = 1)) csv_occur_time[i] <- regmatches(csv_occur_time[i], regexpr("..",  csv_occur_time[i]))
+
+# the number of occurrences of each hour is aggregated and stored as a dataframe
+occur_time_hour <- as.data.frame(table(csv_occur_time))
+```
+### 3.4 Visualize the data
+
+The following graph generated from the code below shows how many NYPD shooting incidents happen at which hour of the day.
+
+```{r visualize_the_data, echo = TRUE}
+# the columns csv_occur_time and Freq are plotted with a heading and labels
+plot(occur_time_hour$csv_occur_time, occur_time_hour$Freq, main = "NYPD Shooting Incidents from 2006 to 2021 Occurrences in Hours", xlab = "Hours", ylab = "Shootings")
+```
+
+As can be seen from the graph, shootings incidents vary a lot according to hour. *Few* shooting incidents occurred in the early morning while *many* shooting incidents occurred at night. Shooting incidents incline from 10 o'clock until a top is reached at 23 o'clock. Shooting incidents decline from 0 o'clock until 9 o'clock.
+
+### 3.5 Hours with *Many* Shooting Incidents
+* 23  
+* 0  
+* 1  
+
+### 3.6 Hours with *Few* Shooting Incidents
+* 7  
+* 8  
+* 9  
+
+## 4. NYPD Shooting Incidents in Boroughs
+
+### 4.1 Import the data
+
+The data we use has already been imported, see 3.1. 
+
+### 4.2 Tidy the data
+
+We tidy the data. Only the BORO (borough) column is used. 
+
+```{r tidy_the_data2, echo = TRUE}
+# the BORO (boroughs) column of the dataset is stored
+csv_boro <- csv_data$BORO
+```
+
+### 4.3 Transform the data
+
+The table method performs a categorical tabulation of the data with the variable and its frequency and the result is converted to a dataframe. 
+
+```{r NYPD_Shooting_Incident_Data_BORO, echo = TRUE}
+# the number of occurrences of each borough is aggregated and stored as a dataframe
+occur_boro <- as.data.frame(table(csv_boro))
+```
+
+### 4.4 Visualize the data
+
+The following pie graph generated from the code below shows how many NYPD shooting incidents happen in which borough.
+
+```{r visualize_the_data2, echo = TRUE}
+# a pie graph is made of the data
+pie(occur_boro$Freq, label = c("BRONX", "BROOKLYN", "MANHATTEN", "QUEENS", "STATEN ISLAND"), main = "NYPD Shooting Incidents from 2006 to 2021 Occurrences in Boroughs")
+```
+
+As can be seen from the graph, shootings incidents vary a lot according to borough. *Few* shooting incidents occurred in Staten Island while *many* shooting incidents occurred in Brooklyn.
+
+### 4.5 Boroughs with *Many* Shooting Incidents (highest first)
+
+1. Brooklyn  
+2. Bronx  
+
+### 4.6 Boroughs with *Few* Shooting Incidents (lowest first)
+
+1. Staten Island  
+2. Manhatten  
+3. Queens  
+
+## 5. Bias
+
+What can be said about the results of the study?
+The results of the study answer when and where NYPD shooting incidents occurred. It didn't answer *why* they occurred. Is the New York police department biased when confronting certain people in certain boroughs?  
+
+The study also didn't look at the boroughs' population size. If Staten Island had ten times less people than Brooklyn then the number of shooting incidents per person in a borough would be similar.
+
+
+## 6. Conclusion
+
+The study looked at when and where NYPD shooting incidents occurred in New York from 2006 to 2021. 
+
+It expected to find that the number of shooting incidents for each borough is the same. The study also expected to find that the number of shooting incidents per hour is the same regardless of location. However, both expectations were not met. 
+
+The study revealed that shooting incidents for each borough varied a lot and that shooting incidents per hour varied a lot too. 
+
+The relationship of the data of both investigations is clearly not constant or linear. This means that the model chosen at the beginning of the study is not a good fit for the data and it should not be used any further. It is better to generate new models based on the data from the study. One model needs to be non-constant while the other needs to be non-linear. 
+
+For further studies, it would be interesting to investigate the population sizes of each borough in New York and how they relate to the number of shooting incidents. 
+
+## 7. Additional Information
+
+### 7.1 Access & Use Information
+
+Public: This dataset is intended for public access and use.  
+Non-Federal: This dataset is covered by different Terms of Use than Data.gov. [See Terms](https://www1.nyc.gov/home/terms-of-use.page)  
+License: No license information was provided.  
+
+### 7.2 Metadata
+
+Resource Type:	Dataset  
+Metadata Created Date:	November 10, 2020  
+Metadata Updated Date:	January 25, 2022  
+Publisher:	data.cityofnewyork.us  
+Unique Identifier:	Unknown  
+Maintainer: NYC OpenData  
+Identifier: https://data.cityofnewyork.us/api/views/833y-fsy8  
+Data First Published:	2020-06-30  
+Data Last Modified:	2021-11-22  
+Category:	Public Safety  
+Public Access Level:	public  
+Metadata Context:	https://project-open-data.cio.gov/v1.1/schema/catalog.jsonld  
+Metadata Catalog ID:	https://data.cityofnewyork.us/data.json  
+Schema Version:	https://project-open-data.cio.gov/v1.1/schema  
+Catalog Described by:	https://project-open-data.cio.gov/v1.1/schema/catalog.json  
+Harvest Object Id:	2184b873-d9de-4fac-8b8d-fcc1402d695a  
+Harvest Source Id:	1696593e-c691-4f61-a696-5dcb9e4c9b4c  
+Harvest Source Title:	NYC JSON  
+Homepage URL:	https://data.cityofnewyork.us/d/833y-fsy8  
+Source Datajson Identifier:	True  
+Source Hash:	80e2f62d04bad70f0564dffd74a34547eccddf85  
+Source Schema Version:	1.1  
+
+## 8. Sessioninfo
+
+```{r, echo = TRUE}
+# It prints version information about R, the OS and attached or loaded packages
+sessionInfo()
+```
